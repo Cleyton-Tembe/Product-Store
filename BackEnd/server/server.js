@@ -18,6 +18,7 @@ app.use(express.json({ limit: "5mb" }));
 app.use("/api/products", route);
 
 if (process.env.NODE_ENV == "production") {
+  console.log("production ready");
   app.use(
     express.static(path.join(__dirname, "/FrontEnd/Product-Front-End/dist")),
   );
