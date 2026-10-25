@@ -34,6 +34,13 @@ export const useProductStore = create((set) => ({
           message: data.message || "Failed to create product",
         };
       }
+      if (response.status === 413) {
+        return {
+          sucess: false,
+          message:
+            "The selected image is too large. Please upload an image smaller than 2 MB.",
+        };
+      }
 
       set((state) => ({
         products: [...state.products, data.data],
@@ -94,6 +101,14 @@ export const useProductStore = create((set) => ({
 
     if (!updatedData && !updatedData.sucess)
       return { sucess: false, message: updatedData.message };
+
+    if (response.status === 413) {
+      return {
+        sucess: false,
+        message:
+          "The selected image is too large. Please upload an image smaller than 2 MB.",
+      };
+    }
 
     set((prev) => ({
       products: prev.products.map((p) => {
