@@ -18,7 +18,7 @@ export const useProductStore = create((set) => ({
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/products", {
+      const response = await fetch("/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +52,7 @@ export const useProductStore = create((set) => ({
   },
 
   fetchProducts: async () => {
-    const response = await fetch("http://localhost:4000/api/products/All", {
+    const response = await fetch("/api/products/All", {
       method: "get",
       headers: {
         "content-type": "application/json",
@@ -63,15 +63,12 @@ export const useProductStore = create((set) => ({
     set({ products: data.data });
   },
   deleteProduct: async (id) => {
-    const response = await fetch(
-      `http://localhost:4000/api/products/delete/${id}`,
-      {
-        method: "delete",
-        headers: {
-          "content-type": "application/json",
-        },
+    const response = await fetch(`/api/products/delete/${id}`, {
+      method: "delete",
+      headers: {
+        "content-type": "application/json",
       },
-    );
+    });
 
     const data = await response.json();
 
@@ -85,16 +82,13 @@ export const useProductStore = create((set) => ({
   },
 
   updateProduct: async (id, updated) => {
-    const response = await fetch(
-      `http://localhost:4000/api/products/update/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(updated),
+    const response = await fetch(`/api/products/update/${id}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
       },
-    );
+      body: JSON.stringify(updated),
+    });
 
     const updatedData = await response.json();
 
