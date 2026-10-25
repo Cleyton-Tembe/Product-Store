@@ -4,66 +4,49 @@ import { isValidObjectId } from "mongoose";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2 MiB
 
-const validateImage = (image) => {
-  if (typeof image !== "string") {
-    return false;
+const validateProductImage = (image) => {
+  if (!image || typeof image !== "string") {
+    return {
+      valid: false,
+      message: "Product image is required",
+    };
   }
 
   const match = image.match(
     /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/,
   );
 
-  if (!match) return false;
-
-  const [, mimeType, base64] = match;
-
-  if (!ALLOWED_IMAGE_TYPES.includes(mimeType)) {
-    return false;
+  if (!match) {
+    return {
+      valid: false,
+      message: "Invalid image format. Use JPG, PNG or WebP.",
+    };
   }
 
-  const buffer = Buffer.from(base64, "base64");
+  const base64 = match[2];
 
-  if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) {
-    return false;
+  const imageSize = Buffer.byteLength(base64, "base64");
+
+  if (imageSize > MAX_IMAGE_SIZE) {
+    return {
+      valid: false,
+      message: "Image exceeds the 2 MB size limit.",
+    };
   }
 
-  const signatures = {
-    "image/jpeg":
-      buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
+  if (imageSize === 0) {
+    return {
+      valid: false,
+      message: "The selected image is empty.",
+    };
+  }
 
-    "image/png": buffer
-      .subarray(0, 8)
-      .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
-
-    "image/webp":
-      buffer.toString("ascii", 0, 4) === "RIFF" &&
-      buffer.toString("ascii", 8, 12) === "WEBP",
+  return {
+    valid: true,
+    message: "Valid image",
   };
-
-  return Boolean(signatures[mimeType]);
-};
-
-const validateProduct = (product) => {
-  if (!product || typeof product.name !== "string" || !product.name.trim()) {
-    return "Product name is required";
-  }
-
-  if (
-    product.price === "" ||
-    product.price === null ||
-    product.price === undefined ||
-    !Number.isFinite(Number(product.price)) ||
-    Number(product.price) <= 0
-  ) {
-    return "Product price must be greater than zero";
-  }
-
-  if (!validateImage(product.image)) {
-    return "Invalid image. Upload a JPG, PNG or WebP up to 2 MB";
-  }
-
-  return null;
 };
 
 // GET ALL PRODUCTS
@@ -86,24 +69,28 @@ const getAll = async (req, res) => {
 };
 
 // CREATE PRODUCT
+
 const addProduct = async (req, res) => {
   try {
     const { name, price, image } = req.body ?? {};
 
-    const validationError = validateProduct({
-      name,
-      price,
-      image,
-    });
-
-    if (validationError) {
+    if (!name?.trim() || !price || !image) {
       return res.status(400).json({
         sucess: false,
-        message: validationError,
+        message: "Please fill all required fields.",
       });
     }
 
-    const newProduct = await Product.create({
+    const validation = validateProductImage(image);
+
+    if (!validation.valid) {
+      return res.status(400).json({
+        sucess: false,
+        message: validation.message,
+      });
+    }
+
+    const product = await Product.create({
       name: name.trim(),
       price: Number(price),
       image,
@@ -112,14 +99,14 @@ const addProduct = async (req, res) => {
     return res.status(201).json({
       sucess: true,
       message: "Product created successfully",
-      data: newProduct,
+      data: product,
     });
   } catch (error) {
-    console.error("Create product error:", error.message);
+    console.error(error);
 
     return res.status(500).json({
       sucess: false,
-      message: "Could not create product",
+      message: "Failed to create product.",
     });
   }
 };
