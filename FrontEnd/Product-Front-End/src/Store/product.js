@@ -27,18 +27,18 @@ export const useProductStore = create((set) => ({
       });
 
       const data = await response.json();
-
-      if (!response.ok || data.sucess === false || !data.data) {
-        return {
-          sucess: false,
-          message: data.message || "Failed to create product",
-        };
-      }
       if (response.status === 413) {
         return {
           sucess: false,
           message:
             "The selected image is too large. Please upload an image smaller than 2 MB.",
+        };
+      }
+
+      if (!response.ok || data.sucess === false || !data.data) {
+        return {
+          sucess: false,
+          message: data.message || "Failed to create product",
         };
       }
 
@@ -98,10 +98,6 @@ export const useProductStore = create((set) => ({
     });
 
     const updatedData = await response.json();
-
-    if (!updatedData && !updatedData.sucess)
-      return { sucess: false, message: updatedData.message };
-
     if (response.status === 413) {
       return {
         sucess: false,
@@ -109,6 +105,9 @@ export const useProductStore = create((set) => ({
           "The selected image is too large. Please upload an image smaller than 2 MB.",
       };
     }
+
+    if (!updatedData && !updatedData.sucess)
+      return { sucess: false, message: updatedData.message };
 
     set((prev) => ({
       products: prev.products.map((p) => {
