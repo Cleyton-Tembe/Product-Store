@@ -6,7 +6,7 @@ Aplicação MERN para gerir uma lista de produtos: criar, ver, editar e apagar.
 
 ## Demo
 
-🔗 **[Ver demo](COLOCA_AQUI_O_LINK_DA_DEMO)**
+🔗 **[Ver demo](https://product-store-dpux.onrender.com)**
 
 ## Funcionalidades
 
